@@ -9,8 +9,14 @@ class uploader {
 		}
 
 		private function upload(){
-			$this->uploadToObjectstore();
-			$this->addToQueue();
+			$status = $this->uploadToObjectstore();
+
+			if ($status == "true"){
+				$this->addToQueue();
+			}else{
+				ConsoleLog("Operation Aborted!");
+			}
+			
 		}
 
 		private function uploadToObjectstore(){
@@ -38,12 +44,18 @@ class uploader {
 
 		    $result = curl_exec ($ch);
 			curl_close ($ch);
+
+			$status = "false";
+
 		    if ($result === FALSE) {
-		       	ConsoleLog("Error sending" . $fname);		        
+		       	ConsoleLog("Error sending" . $fname);	
+		       	$status = "false";	        
 		    }else{
 		        ConsoleLog($result);
-		    }   
+		        $status = "true";
+		    }
 
+		    return $status;
 		}
 
 		private function addToQueue(){
