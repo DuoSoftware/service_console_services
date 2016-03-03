@@ -1,6 +1,7 @@
 <?php
-require_once ('/include/flight/Flight.php');
-require_once ("/include/common.php");
+require_once ($_SERVER['DOCUMENT_ROOT'].'include/flight/Flight.php');
+require_once ($_SERVER['DOCUMENT_ROOT'].'include/common.php');
+require_once ($_SERVER['DOCUMENT_ROOT'].'include/config.php');
 require_once ("./uploader.php");
 
 new uploader();

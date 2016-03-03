@@ -1,7 +1,4 @@
 <?php
-require_once ("/include/common.php");
-require_once("/include/flight/Flight.php");
-
 class uploader {
 		private function status(){
 			$arr = array('Name' => "Service Console Uploader Service", 'Version' => "1.0.0-a", 'Change Log' => "Nothing So Far! Testng!", 'Author' => "Duo Software", 'Repository' => "https://github.com/DuoSoftware/ServiceConsole/");
@@ -10,19 +7,17 @@ class uploader {
 
 		private function upload(){
 			$status = $this->uploadToObjectstore();
-
 			if ($status == "true"){
 				$this->addToQueue();
 			}else{
 				ConsoleLog("Operation Aborted!");
 			}
-			
 		}
 
 		private function uploadToObjectstore(){
 
-			$url = 'http://localhost:3000/com.jayq.com/uploads/'.$_FILES['file']['name'];
-
+			$url = SVC_OS_URL.SVC_UPLOAD_PATH.$_FILES['file']['name'];
+			
 		    $fname = $_FILES['file']['name'];   
 	    	$file = new CURLFile(realpath($_FILES['file']['tmp_name']));
 
