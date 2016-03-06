@@ -2,12 +2,13 @@
 class uploader {
 
 		private function About(){
+			//This is a temporary method. This should be removed and an UI page should come to front :)
 			$arr = array('Name' => "Duo World Application Interface", 'Version' => "1.0.0-a", 'Change Log' => "Nothing so far just testing. Move along!", 'Author' => "Duo Software", 'Website' => "http://www.duoworld.com/", 'Status' => "Running");
 			echo json_encode($arr);
 		}
 
 		private function status(){
-			$arr = array('Name' => "Service Console Uploader Service", 'Version' => "1.0.0-a", 'Change Log' => "AppEngine Compatible uploader redirector.", 'Author' => "Duo Software", 'Repository' => "https://github.com/DuoSoftware/service_console_services");
+			$arr = array('Name' => "Service Console Uploader Service", 'Version' => "1.0.0-a", 'Change Log' => "Refactored Project!", 'Author' => "Duo Software", 'Repository' => "https://github.com/DuoSoftware/service_console_services");
 			echo json_encode($arr);
 		}
 

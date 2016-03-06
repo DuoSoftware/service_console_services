@@ -2,7 +2,7 @@
   require_once ('./include/flight/Flight.php');
   require_once ('./include/common.php');
   require_once ('./include/config.php');
-  require_once ("./uploader.php");
+  require_once ("./services/uploader/uploader.php");
   new uploader();
 	
   Flight::start();
