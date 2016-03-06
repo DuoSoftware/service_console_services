@@ -12,67 +12,27 @@ class uploader {
 		}
 
 		private function upload(){
-			//$status = $this->uploadToObjectstore();
-			$status = $this->uploadWithoutCurl();
-			if ($status == "true"){
-				$this->addToQueue();
+			$status = $this->uploadToObjectstore();
+			if ($status){
+				ConsoleLog("Successfully pushed file to ObjectStore!");
+				$this->pushToQueue();
 			}else{
-				ConsoleLog("Operation Aborted!");
+				ConsoleLog("Operation Aborted! Error pushing file to ObjectStore!");
 			}
 		}
 
+		private function pushToQueue(){
+			ConsoleLog("Starting pushing to Queue!");
+		}
+
 		private function uploadToObjectstore(){
+			ConsoleLog("Starting pushing file to ObjectStore at : ".SVC_OS_URL.SVC_UPLOAD_PATH);
 
 			$url = SVC_OS_URL.SVC_UPLOAD_PATH.$_FILES['file']['name'];
-			ConsoleLog($url);
+		
+			$files['file'] = $_FILES['file'];
 
-		    $fname = $_FILES['file']['name'];
-
- 	    	$file = new CURLFile(realpath($_FILES['file']['tmp_name']));
- 			var_dump($file);
-	        $post = array (
-	                  'file' => $file
-	                  );    
-
-		    $ch = curl_init();
-		    curl_setopt($ch, CURLOPT_URL, $url);
-		    curl_setopt($ch, CURLOPT_POST, 1);
-		    curl_setopt($ch, CURLOPT_HEADER, 0);
-		    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
-		    curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible;)");   
-		    curl_setopt($ch, CURLOPT_HTTPHEADER,array('Content-Type: multipart/form-data','Application: service-console-uploader'));
-		    curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);   
-		    curl_setopt($ch, CURLOPT_FORBID_REUSE, 1);  
-		    curl_setopt($ch, CURLOPT_TIMEOUT, 100);
-		    curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
-		    $result = curl_exec($ch);
-			curl_close ($ch);
-			$status = "false";
-
-		    if ($result === FALSE) {
-		       	ConsoleLog("Error sending" . $fname);	
-		       	$status = "false";	        
-		    }else{
-		        ConsoleLog($result);
-		        $status = "true";
-		    }
-
-		    return $status;
-		}
-
-		private function uploadWithoutCurl(){
-			ConsoleLog("huehueheu");
-			$file=file($_FILES['file']['tmp_name']);
-			$url = SVC_OS_URL.SVC_UPLOAD_PATH.$_FILES['file']['name'];
-			$files['file'] = $_FILES['file']; 
-			ConsoleLog($url);
-			$this->aaa($url, $files); 
-			return "true";
-
-		}
-
-		private function aaa($url, $files){ 
-		    $data = ""; 
+			$data = ""; 
 		    $boundary = "---------------------".substr(md5(rand(0,32000)), 0, 10); 
 
 		    $data .= "--$boundary\n"; 
@@ -99,21 +59,21 @@ class uploader {
 		   $fp = fopen($url, 'rb', false, $ctx); 
 
 		   if (!$fp) { 
-		     ConsoleLog("Problem with url"); 
+		     ConsoleLog("Invalid ObjectStore URL. Check AppEngine Configurations!"); 
 		   } 
 
+		   $status = TRUE;
 		   $response = @stream_get_contents($fp); 
-		   if ($response === false) { 
-		      ConsoleLog("Problem reading data from url"); 
-		   }else{
-		   		ConsoleLog("yay");
-		   }  
-		} 
-		
 
-		private function addToQueue(){
-			ConsoleLog("Starting Adding to Queue!");
-		}
+		   if ($response === false) { 
+		   	  $status = FALSE;
+		      ConsoleLog("Problem reading data from url"); 
+		   }
+		   return $status;
+
+		} 
+
+		
 		
 		function __construct(){
 			Flight::route("GET /", function (){$this->About();});
