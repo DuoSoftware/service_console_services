@@ -6,6 +6,7 @@ class uploader {
 		}
 
 		private function upload(){
+			ConsoleLog("uploadeeeeeeee");
 			$status = $this->uploadToObjectstore();
 			if ($status == "true"){
 				$this->addToQueue();
@@ -17,14 +18,15 @@ class uploader {
 		private function uploadToObjectstore(){
 
 			$url = SVC_OS_URL.SVC_UPLOAD_PATH.$_FILES['file']['name'];
-			
-		    $fname = $_FILES['file']['name'];   
+			ConsoleLog($url);
+		    $fname = $_FILES['file']['name'];  
+		    ConsoleLog("0.0"); 
 	    	$file = new CURLFile(realpath($_FILES['file']['tmp_name']));
-
+ConsoleLog("0.1");
 	        $post = array (
 	                  'file' => $file
 	                  );    
-
+ConsoleLog("0.5");
 		    $ch = curl_init();
 		    curl_setopt($ch, CURLOPT_URL, $url);
 		    curl_setopt($ch, CURLOPT_POST, 1);
@@ -36,10 +38,10 @@ class uploader {
 		    curl_setopt($ch, CURLOPT_FORBID_REUSE, 1);  
 		    curl_setopt($ch, CURLOPT_TIMEOUT, 100);
 		    curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
-
+		    ConsoleLog("1");
 		    $result = curl_exec ($ch);
 			curl_close ($ch);
-
+ConsoleLog("2");
 			$status = "false";
 
 		    if ($result === FALSE) {
@@ -58,7 +60,8 @@ class uploader {
 		}
 		
 		function __construct(){
-			Flight::route("GET /uploader/status", function (){$this->status();});
+			ConsoleLog("executing constructor!");
+			Flight::route("GET /uploader", function (){$this->status();});
 		    Flight::route("POST /uploader/upload", function (){$this->upload();});
 		}
 	}

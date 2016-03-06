@@ -1,14 +1,13 @@
 <?php
-require_once ($_SERVER['DOCUMENT_ROOT'].'include/flight/Flight.php');
-require_once ($_SERVER['DOCUMENT_ROOT'].'include/common.php');
-require_once ($_SERVER['DOCUMENT_ROOT'].'include/config.php');
-require_once ("./uploader.php");
-
-new uploader();
+  require_once ('./include/flight/Flight.php');
+  require_once ('./include/common.php');
+  require_once ('./include/config.php');
+  require_once ("./uploader.php");
+  new uploader();
 	
-Flight::start();
+  Flight::start();
 
-header('Access-Control-Allow-Headers: Content-Type');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST');  
+  header('Access-Control-Allow-Headers: Content-Type');
+  header('Access-Control-Allow-Origin: *');
+  header('Access-Control-Allow-Methods: GET, POST');  
 ?>
