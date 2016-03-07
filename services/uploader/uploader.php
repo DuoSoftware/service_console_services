@@ -1,4 +1,7 @@
 <?php
+
+use google\appengine\api\taskqueue\PushTask;
+
 class uploader {
 
 		private function About(){
@@ -22,8 +25,39 @@ class uploader {
 			}
 		}
 
+		private function uploadTest(){
+			$this->pushToQueue();
+		}
+
+
+
+		private function postObjectstore(){ 
+			$data = $_POST;                                                                 
+			$data_string = json_encode($data);                                                                                   
+			                                                                                                                     
+			$ch = curl_init("http://localhost:3000/aa/bb");                                                                      
+			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);                                                                  
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+			    'securityToken: asdf',
+			    'Content-Type: application/json',                                                                                
+			    'Content-Length: ' . strlen($data_string))                                                                       
+			);                                                                                                                   
+			                                                                                                                     
+			$result = curl_exec($ch);
+
+		}
+
+		private function uploadTest1(){
+			$this->postObjectstore();
+		}
+
 		private function pushToQueue(){
 			ConsoleLog("Starting pushing to Queue!");
+			$data = array("Object" => array("Id" => "-888", "Name" => "PRASAD!"), "Parameters" => array("KeyProperty" => "Id"));                                                                 
+			$task = new PushTask('/uploader/upload2', $data);
+			$task_name = $task->add("jay");
 		}
 
 		private function uploadToObjectstore(){
@@ -79,6 +113,8 @@ class uploader {
 		function __construct(){
 			Flight::route("GET /", function (){$this->About();});
 			Flight::route("GET /uploader", function (){$this->status();});
+			Flight::route("GET /uploader/upload1", function (){$this->uploadTest();});
+			Flight::route("POST /uploader/upload2", function (){$this->uploadTest1();});
 		    Flight::route("POST /uploader/upload", function (){$this->upload();});
 		}
 	}
