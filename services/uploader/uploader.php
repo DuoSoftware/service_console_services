@@ -6,8 +6,6 @@ class uploader {
 		private function status(){
 			$arr = array('Name' => "Service Console Uploader Service", 'Version' => "1.0.0-a", 'Change Log' => "Refactored Project!", 'Author' => "Duo Software", 'Repository' => "https://github.com/DuoSoftware/service_console_services");
 			echo json_encode($arr);
-			$configs = GetGlobalConfigurations();
-			var_dump($configs);
 		}
 
 		private function upload(){
