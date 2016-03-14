@@ -6,8 +6,14 @@ class QueueManager {
 			echo json_encode($arr);
 		}
 
+		private function enqueue(){
+			ConsoleLog("Executing Enqueue Method!");
+			var_dump($_POST);
+		}
+
 		function __construct(){
 			Flight::route("GET /queuemanager", function (){$this->About();});
+			Flight::route("POST /queuemanager/enqueue", function (){$this->enqueue();});
 		}
 	}
 ?>

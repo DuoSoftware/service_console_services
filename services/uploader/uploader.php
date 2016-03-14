@@ -8,44 +8,78 @@ class uploader {
 			echo json_encode($arr);
 		}
 
-		private function upload(){
-			$status = $this->pushFileToObjectstore();
+		private function upload($namespace, $class){
+			$guid = md5(uniqid(rand(), true));
+			$fileName = $guid."-".$_FILES['file']['name'];
+			$uploadRequest = $this->getFileUploadRequest($fileName, $namespace.$class, "BulkProcessor", $fileName, NULL);
+			$status = $this->pushFileToObjectstore($fileName);
 			if ($status){
 				ConsoleLog("Successfully pushed file to ObjectStore!");
-				$this->pushToQueue();
+				$this->pushToQueue($uploadRequest);
 			}else{
 				ConsoleLog("Operation Aborted! Error pushing file to ObjectStore!");
 			}
 		}
 
-		private function pushFileToObjectstore(){
-			$headers = array();
+		private function getFileUploadRequest($RefId, $RefType, $OperationCode, $fileName, $body){
+			$time = new DateTime();
+			$time->getTimestamp();
+			$configdata = GetGlobalConfigurations();
+			$request = array("RefID" => $RefId,
+							 "RefType" => $RefType,
+							 "OperationCode" => $OperationCode,
+							 "TimeStamp" => $time,
+							 "ControlParameters" => $configdata["data"]["data"],
+							 "Parameters" => array("FileName" => $fileName),
+							 "Body" => $body);
+			return $request;
+		}
+
+		private function pushFileToObjectstore($fileName){
 			$status = TRUE;
 			if (strpos($_FILES['file']['name'], '.xlsx') !== false){
-    			$status = CurlUploadFile(SVC_OS_URL.SVC_UPLOAD_PATH.$_FILES['file']['name'], $_FILES, $headers);
+    			$status = CurlUploadFile(SVC_OS_URL.SVC_UPLOAD_PATH.$_FILES['file']['name'], $_FILES['file'], $fileName);
 			}else{
 				$status = FALSE;
 			}
 			return $status;
 		}
 
-		private function pushToQueue(){
-			ConsoleLog("Starting pushing to Queue!");
-			$data = array("Object" => array("Id" => "-888", "Name" => "PRASAD!"), "Parameters" => array("KeyProperty" => "Id"));                                                                 
-			$task = new PushTask('/uploader/upload2', $data);
+		private function pushToQueue($uploadRequest){
+			ConsoleLog("Starting pushing to File Queue!");
+			$task = new PushTask('/queuemanager/enqueue', $uploadRequest);
 			$task_name = $task->add("fileQueue");
 		}
 
-		private function uploadTest1(){
-			$data = $_POST;
-			$headers = array('securityToken: asdf');
-			CurlPost("http://localhost:3000/aa/bb", $data, $headers);
-		}
+		// private function pushToQueue(){
+		// 	ConsoleLog("Starting pushing to File Queue!");
+		// 	$data = array("Object" => array("Id" => "-888", "Name" => "PRASAD!"), "Parameters" => array("KeyProperty" => "Id"));                                                                 
+		// 	$data = array("RefID" => "", "Name" => "PRASAD!", "Parameters" => array("KeyProperty" => "Id"));
+		// 	$task = new PushTask('/queuemanager/enqueue', $data);
+		// 	$task_name = $task->add("fileQueue");
+		// }
+
+
+		//	Test Functions don't deletes
+
+		// private function pushToQueue(){
+		// 	ConsoleLog("Starting pushing to Queue!");
+		// 	$data = array("Object" => array("Id" => "-888", "Name" => "PRASAD!"), "Parameters" => array("KeyProperty" => "Id"));                                                                 
+		// 	$task = new PushTask('/uploader/upload2', $data);
+		// 	$task_name = $task->add("fileQueue");
+		// }
+
+		// private function uploadTest1(){
+		// 	$data = $_POST;
+		// 	$headers = array('securityToken: asdf');
+		// 	CurlPost("http://localhost:3000/aa/bb", $data, $headers);
+		// }
 	
 		function __construct(){
 			Flight::route("GET /uploader", function (){$this->status();});
-			Flight::route("POST /uploader/upload2", function (){$this->uploadTest1();});
-		    Flight::route("POST /uploader/upload", function (){$this->upload();});
+			Flight::route("POST /uploader/@namespace/@class", function ($namespace, $class){
+				$this->upload($namespace, $class);
+            });
 		}
 	}
 ?>

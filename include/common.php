@@ -22,7 +22,7 @@ function GetGlobalConfigurations(){
 
 function ReadFromCEB($securityToken){
 	$url = SVC_CEB_URL."command/getglobalconfig/";
-	$data = array("class" => "StoreConfig");
+	$data = array("class" => "ConsoleConfig");
 	$headers = array('securitytoken: '.$securityToken, 'Content-Type: application/json');
 	$config = CurlPost($url, $data, $headers);
 	return json_decode($config, true);
@@ -79,29 +79,24 @@ function CurlPost($url, $data, $headers){
 	return $result;
 }
 
-function CurlUploadFile($url, $files, $headers){
+function CurlUploadFile($url, $file, $fileName){
 	ConsoleLog("Start uploading file to : ".SVC_OS_URL.SVC_UPLOAD_PATH);
 			
 	$data = ""; 
 	$boundary = "---------------------".substr(md5(rand(0,32000)), 0, 10); 
 
 	$data .= "--$boundary\n"; 
-
-	//Collect Filedata 
-	foreach($files as $key => $file) 
-	{ 
-		$fileContents = file_get_contents($file['tmp_name']); 
-
-		$data .= "Content-Disposition: form-data; name=\"{$key}\"; filename=\"{$file['name']}\"\n"; 
-		$data .= "Content-Type: multipart/form-data\n";
-	 	$data .= "Content-Transfer-Encoding: binary\n\n"; 
-		$data .= $fileContents."\n"; 
-		$data .= "--$boundary--\n"; 
-	} 
+	
+	$fileContents = file_get_contents($file['tmp_name']); 
+	$data .= "Content-Disposition: form-data; name=\"file\"; filename=\"".$fileName."\"\n"; 
+	$data .= "Content-Type: multipart/form-data\n";
+	$data .= "Content-Transfer-Encoding: binary\n\n"; 
+	$data .= $fileContents."\n"; 
+	$data .= "--$boundary--\n"; 
 
 	$params = array('http' => array( 
 		           'method' => 'POST', 
-		           'header' => 'Content-Type: multipart/form-data; boundary='.$boundary, 
+		           'header' => 'Content-Type: multipart/form-data; boundary='.$boundary,
 		           'content' => $data 
 	)); 
 
