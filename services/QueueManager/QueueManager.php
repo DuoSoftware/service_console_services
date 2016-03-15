@@ -1,5 +1,10 @@
 <?php
 
+class huehue{
+	private $one;
+	private $two;
+}
+
 class QueueManager {
 		private function About(){
 			$arr = array('Name' => "Service Console Queue Manager Service", 'Version' => "1.0.0-a", 'Change Log' => "Refactored Project!", 'Author' => "Duo Software", 'Repository' => "https://github.com/DuoSoftware/service_console_services");
@@ -7,8 +12,10 @@ class QueueManager {
 		}
 
 		private function enqueue(){
-			ConsoleLog("Executing Enqueue Method!");
-			var_dump($_POST);
+			ConsoleLog("Executing Enqueue Method");
+			$data = $_POST;
+			$namespaceAndClass = explode(".", $data["RefType"]);
+			CurlPost(SVC_CHECK_URL.$namespaceAndClass[0]."/".$namespaceAndClass[1], $data, $headers);
 		}
 
 		function __construct(){

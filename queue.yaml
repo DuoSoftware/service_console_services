@@ -9,3 +9,8 @@ queue:
   rate: 5/s
   bucket_size: 5
   max_concurrent_requests: 5
+
+- name: scheduleQueue
+  rate: 5/s
+  bucket_size: 5
+  max_concurrent_requests: 5

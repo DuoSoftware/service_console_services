@@ -60,7 +60,7 @@ function CurlGet($url, $headers){
 
 function CurlPost($url, $data, $headers){                                                                
 	$data_string = json_encode($data);
-
+	ConsoleLog($data_string);
 	$headerArray = array(                                                                          
 			    'Content-Type: application/json',                                                                                
 			    'Content-Length: ' . strlen($data_string));
@@ -68,7 +68,7 @@ function CurlPost($url, $data, $headers){
 	if(!empty($headers)){
 		$headerArray=array_merge($headers, $headerArray);
 	}
-			                                                                                                                     
+			        	                                                                                                             
 	$ch = curl_init($url);                                                                      
 	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);                                                                  

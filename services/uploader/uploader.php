@@ -11,7 +11,7 @@ class uploader {
 		private function upload($namespace, $class){
 			$guid = md5(uniqid(rand(), true));
 			$fileName = $guid."-".$_FILES['file']['name'];
-			$uploadRequest = $this->getFileUploadRequest($fileName, $namespace.$class, "BulkProcessor", $fileName, NULL);
+			$uploadRequest = $this->getFileUploadRequest($fileName, $namespace.".".$class, "BulkProcessor", $fileName, NULL);
 			$status = $this->pushFileToObjectstore($fileName);
 			if ($status){
 				ConsoleLog("Successfully pushed file to ObjectStore!");
@@ -22,8 +22,8 @@ class uploader {
 		}
 
 		private function getFileUploadRequest($RefId, $RefType, $OperationCode, $fileName, $body){
-			$time = new DateTime();
-			$time->getTimestamp();
+			$date = new DateTime();
+			$time = $date->format('Y-m-d H:i:s');
 			$configdata = GetGlobalConfigurations();
 			$request = array("RefID" => $RefId,
 							 "RefType" => $RefType,
