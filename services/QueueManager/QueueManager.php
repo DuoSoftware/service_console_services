@@ -15,7 +15,8 @@ class QueueManager {
 			ConsoleLog("Executing Enqueue Method");
 			$data = $_POST;
 			$namespaceAndClass = explode(".", $data["RefType"]);
-			CurlPost(SVC_WORKER_URL.$namespaceAndClass[0]."/".$namespaceAndClass[1], $data, $headers);
+			$result = CurlPost(SVC_WORKER_URL.$namespaceAndClass[0]."/".$namespaceAndClass[1], $data, $headers);
+			return $result;
 		}
 
 		function __construct(){

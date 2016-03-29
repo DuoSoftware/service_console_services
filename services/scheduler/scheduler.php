@@ -20,18 +20,25 @@ class scheduler {
 				if (isset($data->Body)){
 					$Body = $data->Body;
 				}else{
-					$Body = "Empty Body Field";
+					$Body = "Empty Body Field.. Use this feild to store related informations.";
 				}
 
-				$request = $this->getScheduleRequest($RefID, $namespace.".".$class, $OperationCode, $Parameters, $ScheduleParameters, $Body);
+				if (isset($data->TimeStamp)){
+					$TimeStamp = $data->TimeStamp;
 
-				$status = $this->pushRecordToObjectstore($request, "RefID");
-				if ($status){
-					$this->pushToQueue($request);
-					echo json_encode("Completed Request!");
+					$request = $this->getScheduleRequest($RefID, $namespace.".".$class, $OperationCode, $Parameters, $ScheduleParameters, $TimeStamp, $Body);
+
+					$status = $this->pushRecordToObjectstore($request, "RefID");
+					if ($status){
+						$this->pushToQueue($request);
+						echo json_encode("Completed Request!");
+					}else{
+						echo json_encode("Operation Aborted! Error pushing Request to ObjectStore!");
+					}
 				}else{
-					echo json_encode("Operation Aborted! Error pushing Request to ObjectStore!");
+					echo json_encode("TimeStamp Not included in Request!");
 				}
+				
 			}else{
 				echo json_encode("Error in request JSON!");
 			}
@@ -39,20 +46,27 @@ class scheduler {
 			
 		}
 
-		private function getScheduleRequest($RefId, $RefType, $OperationCode, $parameters, $ScheduleParameters, $body){
-			$date = new DateTime();
-			$time = $date->format('Y-m-d H:i:s');
+		private function getScheduleRequest($RefId, $RefType, $OperationCode, $parameters, $ScheduleParameters, $TimeStamp, $body){
+			//$date = new DateTime();
+			//$time = $date->format('Y-m-d H:i:s');
+
+			// if ($TimeStamp != "nowtime"){
+			// 	$to_time = strtotime($TimeStamp);
+			// 	$from_time = strtotime($time);
+			// 	$time =  round(($to_time - $from_time) ,2);
+			// }
+
 			$configdata = GetGlobalConfigurations();
 			$request = array("RefID" => $RefId,
 							 "RefType" => $RefType,
 							 "OperationCode" => $OperationCode,
-							 "TimeStamp" => $time,
+							 "TimeStamp" => $TimeStamp,
 							 "ControlParameters" => $configdata["data"]["data"],
 							 "Parameters" => $parameters,
 							 "ScheduleParameters" => $ScheduleParameters,
 							 "Body" => $body);
 			return $request;
-		}
+		}	
 
 		private function pushRecordToObjectstore($record, $primarykey){
 			$status = TRUE;
