@@ -16,7 +16,6 @@ class QueueManager {
 			$data = $_POST;
 			$requestObject = $this->getRequestObject($data);
 
-
 			$response;
 
 			switch ($requestObject->OperationCode) {
@@ -46,29 +45,22 @@ class QueueManager {
 			if (!isset($class)){
 				$class = "ignoreclass";
 			}
-
+			$headers = array('securityToken: ignore');
 			$result = CurlPost(SVC_WORKER_URL.$namespace."/".$class, $requestObject, $headers);
 			return $result;
 		}
 
 		private function SendEmail($object){
-			// $GroupNamespace = $object->Parameters->JSONData->Group->Namespace;
-			// $GroupID = $object->Parameters->JSONData->Group->GroupID;
-  	// 	 	$subject = $object->Parameters->JSONData->Subject;
-  	// 	 	$from = $object->Parameters->JSONData->GatewaySettings->Email->From;
-  	// 	 	$TemplateID = $object->Parameters->JSONData->Template->TemplateID;
-  	// 	 	$TemplateNamespace = $object->Parameters->JSONData->Template->Namespace;
-
-  		 	$GroupNamespace = "namespace";
-			$GroupID = "GroupA";
-  		 	$subject = "huehuehue";
-  		 	$from = "Duo World <no-reply@duoworld.com>";
-  		 	$TemplateID = "T_Email_GENERAL";
-  		 	$TemplateNamespace = "com.duosoftware.com";
+			$GroupNamespace = $object->Parameters["JSONData"]["Group"]["Namespace"];
+			$GroupID = $object->Parameters["JSONData"]["Group"]["GroupID"];
+  		 	$subject = $object->Parameters["JSONData"]["Subject"];
+  		 	$from = $object->Parameters["JSONData"]["GatewaySettings"]["Email"]["From"];
+  		 	$TemplateID = $object->Parameters["JSONData"]["Template"]["TemplateID"];
+  		 	$TemplateNamespace = $object->Parameters["JSONData"]["Template"]["Namespace"];
 
 			$client = ObjectStoreClient::WithNamespace($GroupNamespace,$GroupID,"ignore");
   		 	$resultArray = $client->get()->all();
-  		 	
+
   		 	for ($x = 0; $x < sizeof($resultArray); $x++) {
     			$requestBody = $this->createCEBEmailRequest($resultArray[$x]["Email"], $subject, $from, $TemplateNamespace, $TemplateID);
     			$headers = array('securityToken: asdf');
@@ -88,7 +80,7 @@ class QueueManager {
 
 		private function getRequestObject($arr){
 			$object = new ScheduleRequest();
-			$object->RefId= $arr["RefId"];
+			$object->RefId = $arr["RefId"];
 			$object->RefType = $arr["RefType"];
 			$object->OperationCode = $arr["OperationCode"];
 			$object->TimeStamp = $arr["TimeStamp"];
@@ -102,6 +94,7 @@ class QueueManager {
 		function __construct(){
 			Flight::route("GET /queuemanager", function (){$this->About();});
 			Flight::route("POST /queuemanager/enqueue", function (){$this->enqueue();});
+			Flight::route("GET /queuemanager/bb", function (){$this->enqueue1();});
 		}
 	}
 ?>
