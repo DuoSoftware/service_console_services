@@ -80,7 +80,7 @@ function CurlPost($url, $data, $headers){
 }
 
 function CurlUploadFile($url, $file, $fileName){
-	ConsoleLog("Start uploading file to : ".SVC_OS_URL.SVC_UPLOAD_PATH);
+	ConsoleLog("Start uploading file to : ".SVC_OS_URL."/".SVC_UPLOAD_PATH);
 			
 	$data = ""; 
 	$boundary = "---------------------".substr(md5(rand(0,32000)), 0, 10); 

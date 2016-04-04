@@ -38,7 +38,7 @@ class uploader {
 		private function pushFileToObjectstore($fileName){
 			$status = TRUE;
 			if (strpos($_FILES['file']['name'], '.xlsx') !== false){
-    			$status = CurlUploadFile(SVC_OS_URL.SVC_UPLOAD_PATH.$_FILES['file']['name'], $_FILES['file'], $fileName);
+    			$status = CurlUploadFile(SVC_OS_URL."/".SVC_UPLOAD_PATH.$_FILES['file']['name'], $_FILES['file'], $fileName);
 			}else{
 				$status = FALSE;
 			}

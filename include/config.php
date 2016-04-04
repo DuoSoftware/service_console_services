@@ -1,6 +1,6 @@
 <?php
 //service console global variables
-define("SVC_OS_URL","http://localhost:3000/");
+define("SVC_OS_URL","http://localhost:3000");
 define("SVC_WORKER_URL","http://localhost:7500/");
 define("SVC_AUTH_URL","http://auth.duoworld.com:3048/");
 define("SVC_CEB_URL","http://admin.dev.duoworld.com:3500/");
