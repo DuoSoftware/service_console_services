@@ -58,6 +58,9 @@ class QueueManager {
   		 	$TemplateID = $object->Parameters["JSONData"]["Template"]["TemplateID"];
   		 	$TemplateNamespace = $object->Parameters["JSONData"]["Template"]["Namespace"];
 
+  		 	$from = str_replace("u003c","<",$from);
+  		 	$from = str_replace("u003e",">",$from);
+
 			$client = ObjectStoreClient::WithNamespace($GroupNamespace,$GroupID,"ignore");
   		 	$resultArray = $client->get()->all();
 
