@@ -66,7 +66,8 @@ class QueueManager {
 
   		 	for ($x = 0; $x < sizeof($resultArray); $x++) {
     			$requestBody = $this->createCEBEmailRequest($resultArray[$x]["Email"], $subject, $from, $TemplateNamespace, $TemplateID);
-    			$headers = array('securityToken: asdf');
+    			$headers = array('securityToken: ignore');
+    			//$status = CurlPost("http://localhost:6000/aa/bb", $requestBody, $headers);
     			$status = CurlPost(SVC_CEB_URL."command/notification", $requestBody, $headers);
 			}
 		}
