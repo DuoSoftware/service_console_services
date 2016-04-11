@@ -6,7 +6,28 @@ class scheduler {
 			echo json_encode($arr);
 		}
 
-		
+		private function addInfo(){
+			echo json_encode("GET version of this method is unavailable! Try POST method with a scheduler request body!");
+		}
+
+		private function uploadInfo(){
+				echo json_encode("GET version of this method is unavailable! Try POST method with a scheduler request body!");
+		}
+
+		private function add(){
+			$body = Flight::request()->getBody();
+			$data = new ScheduleRequest();
+			$data = json_decode($body);
+			$request = $this->getScheduleRequest($data);
+
+			$status = $this->pushNewScheduleObjectToObjectstore($data, "RefId");
+			
+			if ($status){
+					echo json_encode("Inserted To ObjectStore!");
+				}else{
+					echo json_encode("Operation Aborted! Error pushing Request to ObjectStore!");
+				}
+		}
 
 
 		private function upload(){
@@ -52,8 +73,18 @@ class scheduler {
 		private function pushRecordToObjectstore($record, $primarykey){
 			$status = TRUE;
 			$data = array("Object" => $record, "Parameters" => array("KeyProperty" => $primarykey));                                                          
-			$headers = array('securityToken: asdf');
+			$headers = array('securityToken: ignore');
+			var_dump($data);
 			$status = CurlPost(SVC_OS_URL."/"."completed.console.data/scheduleobjects", $data, $headers);
+			return $status;
+		}
+
+		private function pushNewScheduleObjectToObjectstore($record, $primarykey){
+			$status = TRUE;
+			$data = array("Object" => $record, "Parameters" => array("KeyProperty" => $primarykey));                                                          
+			$headers = array('securityToken: ignore');
+			var_dump($data);
+			$status = CurlPost(SVC_OS_URL."/"."pending.console.data/scheduleobjects", $data, $headers);
 			return $status;
 		}
 
@@ -66,6 +97,9 @@ class scheduler {
 		function __construct(){
 			Flight::route("GET /scheduler", function (){$this->About();});
 			Flight::route("POST /scheduler/schedule", function (){$this->upload();});
+			Flight::route("POST /scheduler/add", function (){$this->add();});
+			Flight::route("GET /scheduler/schedule", function (){$this->uploadInfo();});
+			Flight::route("GET /scheduler/add", function (){$this->addInfo();});
 		}
 	}
 ?>
