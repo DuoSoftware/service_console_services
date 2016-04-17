@@ -11,6 +11,7 @@
   require_once ('./include/dwcommon.php');
   require_once ('./include/objectstoreproxy.php');
   require_once ("./services/TaskDispatcher/TaskDispatcher.php");
+  require_once ("./services/ObjectStoreTester/ObjectStoreTester.php");
   
   new info();
   new uploader();
@@ -18,6 +19,7 @@
   new QueueManager();
   new scheduler();
   new TaskDispatcher();
+  new objectstoretester();
 	
   Flight::start();
 
