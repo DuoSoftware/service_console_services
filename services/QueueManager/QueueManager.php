@@ -54,9 +54,18 @@ class QueueManager {
 			$GroupNamespace = $object->Parameters["JSONData"]["Group"]["Namespace"];
 			$GroupID = $object->Parameters["JSONData"]["Group"]["GroupID"];
   		 	$subject = $object->Parameters["JSONData"]["Subject"];
-  		 	$from = $object->Parameters["JSONData"]["GatewaySettings"]["Email"]["From"];
+  		 	//$from = $object->Parameters["JSONData"]["GatewaySettings"]["Email"]["From"];
   		 	$TemplateID = $object->Parameters["JSONData"]["Template"]["TemplateID"];
   		 	$TemplateNamespace = $object->Parameters["JSONData"]["Template"]["Namespace"];
+
+  		 	$emailNamespace = $object->Parameters["JSONData"]["GatewaySettings"]["Namespace"];
+  		 	$emailClass = $object->Parameters["JSONData"]["GatewaySettings"]["Class"];
+  		 	$emailID = $object->Parameters["JSONData"]["GatewaySettings"]["SettingsID"];
+
+  		 	$clientObjEmail = ObjectStoreClient::WithNamespace($emailNamespace,$emailClass,"ignore");
+  		 	$resultEmailSettingsArray = $clientObjEmail->get()->byKey($emailID);
+  		 	$from = $resultEmailSettingsArray[0]["From"];
+
 
   		 	$from = str_replace("u003c","<",$from);
   		 	$from = str_replace("u003e",">",$from);
@@ -98,7 +107,6 @@ class QueueManager {
 		function __construct(){
 			Flight::route("GET /queuemanager", function (){$this->About();});
 			Flight::route("POST /queuemanager/enqueue", function (){$this->enqueue();});
-			Flight::route("GET /queuemanager/bb", function (){$this->enqueue1();});
 		}
 	}
 ?>
