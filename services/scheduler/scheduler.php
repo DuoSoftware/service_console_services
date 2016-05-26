@@ -2,7 +2,7 @@
 use google\appengine\api\taskqueue\PushTask;
 class scheduler {
 		private function About(){
-			$arr = array('Name' => "Service Console Scheduler Service", 'Version' => "1.0.0-a", 'Change Log' => "Refactored Project!", 'Author' => "Duo Software", 'Repository' => "https://github.com/DuoSoftware/service_console_services");
+			$arr = array('Name' => "Service Console Scheduler Service", 'Version' => "1.0.1-a", 'Change Log' => "Refactored Project!", 'Author' => "Duo Software", 'Repository' => "https://github.com/DuoSoftware/service_console_services");
 			echo json_encode($arr);
 		}
 
@@ -18,8 +18,9 @@ class scheduler {
 			$body = Flight::request()->getBody();
 			$data = new ScheduleRequest();
 			$data = json_decode($body);
+			$configdata = GetGlobalConfigurations();
+			$data->ControlParameters = $configdata["data"]["data"];
 			$request = $this->getScheduleRequest($data);
-
 			$status = $this->pushNewScheduleObjectToObjectstore($data, "RefId");
 			
 			if ($status){

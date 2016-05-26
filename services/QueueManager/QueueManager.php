@@ -7,7 +7,7 @@ class huehue{
 
 class QueueManager {
 		private function About(){
-			$arr = array('Name' => "Service Console Queue Manager Service", 'Version' => "1.0.0-a", 'Change Log' => "Refactored Project!", 'Author' => "Duo Software", 'Repository' => "https://github.com/DuoSoftware/service_console_services");
+			$arr = array('Name' => "Service Console Queue Manager Service", 'Version' => "1.0.1-a", 'Change Log' => "Refactored Project!", 'Author' => "Duo Software", 'Repository' => "https://github.com/DuoSoftware/service_console_services");
 			echo json_encode($arr);
 		}
 

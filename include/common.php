@@ -39,9 +39,12 @@ function GetSecurityToken(){
 
 function CurlGet($url, $headers){
 	
+	// $headerArray = array(                                                                          
+	// 		    'Content-Type: application/json',                                                                                
+	// 		    'Content-Length: ' . strlen($data_string));
+
 	$headerArray = array(                                                                          
-			    'Content-Type: application/json',                                                                                
-			    'Content-Length: ' . strlen($data_string));
+			    'Content-Type: application/json');
 
 	if(!empty($headers)){
 		$headerArray=array_merge($headers, $headerArray);
