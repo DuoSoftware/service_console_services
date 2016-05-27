@@ -5,7 +5,7 @@ function ConsoleLog( $data ) {
         $output = "<script>console.log( 'Log : " . implode( ',', $data) . "' );</script>";
     else
         $output = "<script>console.log( 'Log : " . $data . "' );</script>";
-	echo($output);
+	//echo($output);
 }
 
 function AuthLogin($authURL, $username, $password, $domain){

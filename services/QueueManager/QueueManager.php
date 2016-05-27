@@ -51,6 +51,8 @@ class QueueManager {
 		}
 
 		private function SendEmail($object){
+	
+
 			$GroupNamespace = $object->Parameters["JSONData"]["Group"]["Namespace"];
 			$GroupID = $object->Parameters["JSONData"]["Group"]["GroupID"];
   		 	$subject = $object->Parameters["JSONData"]["Subject"];
@@ -64,20 +66,24 @@ class QueueManager {
 
   		 	$clientObjEmail = ObjectStoreClient::WithNamespace($emailNamespace,$emailClass,"ignore");
   		 	$resultEmailSettingsArray = $clientObjEmail->get()->byKey($emailID);
-  		 	$from = $resultEmailSettingsArray[0]["From"];
 
+  	 		$from = $resultEmailSettingsArray->FromAddress;
 
   		 	$from = str_replace("u003c","<",$from);
   		 	$from = str_replace("u003e",">",$from);
+  		 	$from = str_replace("\u003c","<",$from);
+  		 	$from = str_replace("\u003e",">",$from);
 
 			$client = ObjectStoreClient::WithNamespace($GroupNamespace,$GroupID,"ignore");
   		 	$resultArray = $client->get()->all();
 
   		 	for ($x = 0; $x < sizeof($resultArray); $x++) {
-    			$requestBody = $this->createCEBEmailRequest($resultArray[$x]["Email"], $subject, $from, $TemplateNamespace, $TemplateID);
-    			$headers = array('securityToken: ignore');
-    			//$status = CurlPost("http://localhost:6000/aa/bb", $requestBody, $headers);
-    			$status = CurlPost(SVC_CEB_URL."command/notification", $requestBody, $headers);
+  		 		if (!empty($resultArray[$x]["Email"]) && $resultArray[$x]["Email"] != "") {
+	    			$requestBody = $this->createCEBEmailRequest($resultArray[$x]["Email"], $subject, $from, $TemplateNamespace, $TemplateID);
+	    			$headers = array('securityToken: ignore');
+	    			//$status = CurlPost("http://localhost:6000/aa/bb", $requestBody, $headers);
+	    			$status = CurlPost(SVC_CEB_URL."command/notification", $requestBody, $headers);
+    			}
 			}
 		}
 

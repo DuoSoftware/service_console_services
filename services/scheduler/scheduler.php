@@ -22,14 +22,20 @@ class scheduler {
 			$data->ControlParameters = $configdata["data"]["data"];
 			$request = $this->getScheduleRequest($data);
 			$status = $this->pushNewScheduleObjectToObjectstore($data, "RefId");
+
+
 			
 			if ($status){
-					echo json_encode("Inserted To ObjectStore!");
+					$response = new CommonResponse();
+					$response->IsSuccess = TRUE;
+					echo json_encode($response);
 				}else{
-					echo json_encode("Operation Aborted! Error pushing Request to ObjectStore!");
+					$response = new CommonResponse();
+					$response->CustomMessage = "Operation Aborted! Error pushing Request to ObjectStore!";
+					$response->IsSuccess = FALSE;
+					echo json_encode($response);
 				}
 		}
-
 
 		private function upload(){
 			
@@ -46,16 +52,27 @@ class scheduler {
 					$status = $this->pushRecordToObjectstore($data, "RefId");
 					if ($status){
 						$this->pushToQueue($request);
-						echo json_encode("Completed Request!");
+						$response = new CommonResponse();
+						$response->IsSuccess = TRUE;
+						echo json_encode($response);
 					}else{
-						echo json_encode("Operation Aborted! Error pushing Request to ObjectStore!");
+						$response = new CommonResponse();
+						$response->CustomMessage = "Operation Aborted! Error pushing Request to ObjectStore!";
+						$response->IsSuccess = FALSE;
+						echo json_encode($response);
 					}
 				}else{
-					echo json_encode("TimeStamp Not included in Request!");
+					$response = new CommonResponse();
+					$response->CustomMessage = "TimeStamp Not included in Request!";
+					$response->IsSuccess = FALSE;
+					echo json_encode($response);
 				}
 				
 			}else{
-				echo json_encode("Error in request JSON!");
+				$response = new CommonResponse();
+				$response->CustomMessage = "Error in request JSON!";
+				$response->IsSuccess = FALSE;
+				echo json_encode($response);
 			}
 		}
 
@@ -75,7 +92,7 @@ class scheduler {
 			$status = TRUE;
 			$data = array("Object" => $record, "Parameters" => array("KeyProperty" => $primarykey));                                                          
 			$headers = array('securityToken: ignore');
-			var_dump($data);
+			//var_dump($data);
 			$status = CurlPost(SVC_OS_URL."/"."completed.console.data/scheduleobjects", $data, $headers);
 			return $status;
 		}
@@ -84,7 +101,7 @@ class scheduler {
 			$status = TRUE;
 			$data = array("Object" => $record, "Parameters" => array("KeyProperty" => $primarykey));                                                          
 			$headers = array('securityToken: ignore');
-			var_dump($data);
+			//var_dump($data);
 			$status = CurlPost(SVC_OS_URL."/"."pending.console.data/scheduleobjects", $data, $headers);
 			return $status;
 		}

@@ -8,5 +8,13 @@
 		public $ControlParameters;
 		public $Parameters;
 		public $ScheduleParameters;
-	}	
+	}
+
+
+	class CommonResponse{
+		public $Exception;
+		public $CustomMessage;
+		public $IsSuccess;
+		public $Result;
+	}
 ?>
