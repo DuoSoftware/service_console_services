@@ -142,9 +142,22 @@ function getCachedCEB_Config() {
     $data = ReadFromCEB(getCachedSecurityToken());
     $memcache->set("CEB_Config", $data);
   }else{
-  	ConsoleLog("CEB_Config Found in Cache");
+  	ConsoleLog("CEB_Config Found in Cache"); 
   }
   return $data;
 }
+
+// function LogCache($logname, $input){
+// 	$memcache = new Memcache;
+//   	$data = $memcache->get($logname);
+// 	  if ($data === false) {
+// 	  	$stack = array($input);
+// 	    $memcache->set($logname, $stack);
+// 	  }else{
+// 	 	array_push($data, $input);
+//     	$memcache->set($logname, $data);
+// 	  }
+//   	return $data;
+// }
 
 ?>
