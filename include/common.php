@@ -147,17 +147,25 @@ function getCachedCEB_Config() {
   return $data;
 }
 
-// function LogCache($logname, $input){
-// 	$memcache = new Memcache;
-//   	$data = $memcache->get($logname);
-// 	  if ($data === false) {
-// 	  	$stack = array($input);
-// 	    $memcache->set($logname, $stack);
-// 	  }else{
-// 	 	array_push($data, $input);
-//     	$memcache->set($logname, $data);
-// 	  }
-//   	return $data;
-// }
+function WriteLog($logname, $input){
+	$memcache = new Memcache;
+  	$data = $memcache->get($logname);
+	  if ($data === false) {
+	  	$stack = array($input);
+	    $memcache->set($logname, $stack);
+	  }else{
+	 	array_push($data, $input);
+    	$memcache->set($logname, $data);
+	  }
+}
+
+function ReadLog($logname){
+	$memcache = new Memcache;
+  	$data = $memcache->get($logname);
+	if ($data === false) {
+		$data = "Log data Not Available for this entry!";
+	}
+  	return $data;
+}
 
 ?>

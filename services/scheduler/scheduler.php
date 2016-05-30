@@ -23,16 +23,22 @@ class scheduler {
 			$request = $this->getScheduleRequest($data);
 			$status = $this->pushNewScheduleObjectToObjectstore($data, "RefId");
 
+			WriteLog(("ScheduleAdd".$data->RefId), "Starting adding a new scheduler");
 
+			WriteLog(("ScheduleAdd".$data->RefId), $data);
+
+			WriteLog("ScheduleAddRequests", $data->RefId);
 			
 			if ($status){
 					$response = new CommonResponse();
 					$response->IsSuccess = TRUE;
+					WriteLog(("ScheduleAdd".$data->RefId), "Successfully added schedule to ObjectStore!");
 					echo json_encode($response);
 				}else{
 					$response = new CommonResponse();
 					$response->CustomMessage = "Operation Aborted! Error pushing Request to ObjectStore!";
 					$response->IsSuccess = FALSE;
+					WriteLog(("ScheduleAdd".$data->RefId), "Operation Aborted! Error pushing Request to ObjectStore!");
 					echo json_encode($response);
 				}
 		}
@@ -50,20 +56,29 @@ class scheduler {
 		
 					$request = $this->getScheduleRequest($data);
 					$status = $this->pushRecordToObjectstore($data, "RefId");
+
+					WriteLog("Schedule", $data->RefId);
+
+					WriteLog(("Schedule".$data->RefId), "Staring new Scheduler Task!");
+					WriteLog(("Schedule".$data->RefId), $data);
+
 					if ($status){
 						$this->pushToQueue($request);
 						$response = new CommonResponse();
 						$response->IsSuccess = TRUE;
+						WriteLog(("Schedule".$data->RefId), "Successfully added to Task Queue!");
 						echo json_encode($response);
 					}else{
 						$response = new CommonResponse();
 						$response->CustomMessage = "Operation Aborted! Error pushing Request to ObjectStore!";
+						WriteLog(("Schedule".$data->RefId), "Error adding to Task Queue because ObjectStore returned an Error!");
 						$response->IsSuccess = FALSE;
 						echo json_encode($response);
 					}
 				}else{
 					$response = new CommonResponse();
 					$response->CustomMessage = "TimeStamp Not included in Request!";
+					WriteLog(("Schedule".$data->RefId), "TimeStamp Not included in Request!");
 					$response->IsSuccess = FALSE;
 					echo json_encode($response);
 				}
@@ -71,6 +86,7 @@ class scheduler {
 			}else{
 				$response = new CommonResponse();
 				$response->CustomMessage = "Error in request JSON!";
+				WriteLog(("Schedule".$data->RefId), "Error in request JSON!");
 				$response->IsSuccess = FALSE;
 				echo json_encode($response);
 			}
@@ -112,12 +128,40 @@ class scheduler {
 			$task_name = $task->add("scheduleQueue");
 		}
 
+		private function getAddLogList(){
+			$data = ReadLog("ScheduleAddRequests");
+			echo json_encode($data);
+		}
+
+		private function getAddLog($refid){
+			$data = ReadLog("ScheduleAdd".$refid);
+			echo json_encode($data);
+		}
+
+		private function getScheduleLogList(){
+			$data = ReadLog("ScheduleRequests");
+			echo json_encode($data);
+		}
+
+		private function getScheduleLog($refid){
+			$data = ReadLog("Schedule".$refid);
+			echo json_encode($data);
+		}
+
 		function __construct(){
 			Flight::route("GET /scheduler", function (){$this->About();});
 			Flight::route("POST /scheduler/schedule", function (){$this->upload();});
 			Flight::route("POST /scheduler/add", function (){$this->add();});
 			Flight::route("GET /scheduler/schedule", function (){$this->uploadInfo();});
 			Flight::route("GET /scheduler/add", function (){$this->addInfo();});
+			Flight::route("GET /scheduler/add/loglist", function (){$this->getAddLogList();});
+			Flight::route("GET /scheduler/add/log/@refid", function ($refid){
+				$this->getAddLog($refid);
+            });
+            Flight::route("GET /scheduler/schedule/loglist", function (){$this->getScheduleLogList();});
+			Flight::route("GET /scheduler/schedule/log/@refid", function ($refid){
+				$this->getScheduleLog($refid);
+            });
 		}
 	}
 ?>
