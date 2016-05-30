@@ -139,7 +139,7 @@ class scheduler {
 		}
 
 		private function getScheduleLogList(){
-			$data = ReadLog("ScheduleRequests");
+			$data = ReadLog("Schedule");
 			echo json_encode($data);
 		}
 
