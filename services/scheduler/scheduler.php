@@ -25,6 +25,8 @@ class scheduler {
 
 			WriteLog(("ScheduleAdd".$data->RefId), "Starting adding a new scheduler");
 
+			WriteLog(("ScheduleAdd".$data->RefId), $body);
+
 			WriteLog(("ScheduleAdd".$data->RefId), $data);
 
 			WriteLog("ScheduleAddRequests", $data->RefId);
