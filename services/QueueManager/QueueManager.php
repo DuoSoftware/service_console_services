@@ -7,7 +7,7 @@ class huehue{
 
 class QueueManager {
 		private function About(){
-			$arr = array('Name' => "Service Console Queue Manager Service", 'Version' => "1.0.1-a", 'Change Log' => "Refactored Project!", 'Author' => "Duo Software", 'Repository' => "https://github.com/DuoSoftware/service_console_services");
+			$arr = array('Name' => "Service Console Queue Manager Service", 'Version' => "1.0.2-a", 'Change Log' => "Added SMS!", 'Author' => "Duo Software", 'Repository' => "https://github.com/DuoSoftware/service_console_services");
 			echo json_encode($arr);
 		}
 
@@ -35,7 +35,7 @@ class QueueManager {
 			        break;
 			    case "SMS Campaign":
 			    	WriteLog(("QueueAdd".$requestObject->RefId), "Sending to CEB SMS Service!");
-			        $response = $this->SendEmail($requestObject);
+			        $response = $this->SendSMS($requestObject);
 			     	break;
 			    default:
 			        $response = $this->PostToSmoothFlow($requestObject);
@@ -63,7 +63,7 @@ class QueueManager {
 		}
 
 		private function SendEmail($object){
-			WriteLog(("QueueAdd".$object->RefId), "Starting SendMail Function for CEB Posting....");
+			WriteLog(("QueueAdd".$object->RefId), "Starting Send Mail Function for CEB Posting....");
 
 			$GroupNamespace = $object->Parameters["JSONData"]["Group"]["Namespace"];
 			$GroupID = $object->Parameters["JSONData"]["Group"]["GroupID"];
@@ -106,6 +106,50 @@ class QueueManager {
 			}
 		}
 
+		private function SendSMS($object){
+			WriteLog(("QueueAdd".$object->RefId), "Starting Send SMS Function for CEB Posting....");
+
+			$GroupNamespace = $object->Parameters["JSONData"]["Group"]["Namespace"];
+			$GroupID = $object->Parameters["JSONData"]["Group"]["GroupID"];
+  		 	//$subject = $object->Parameters["JSONData"]["Subject"];
+  		 	//$from = $object->Parameters["JSONData"]["GatewaySettings"]["Email"]["From"];
+  		 	$TemplateID = $object->Parameters["JSONData"]["Template"]["TemplateID"];
+  		 	$TemplateNamespace = $object->Parameters["JSONData"]["Template"]["Namespace"];
+
+  		 	//$emailNamespace = $object->Parameters["JSONData"]["GatewaySettings"]["Namespace"];
+  		 	//$emailClass = $object->Parameters["JSONData"]["GatewaySettings"]["Class"];
+  		 	//$emailID = $object->Parameters["JSONData"]["GatewaySettings"]["SettingsID"];
+
+  		 	//$clientObjEmail = ObjectStoreClient::WithNamespace($emailNamespace,$emailClass,"ignore");
+  		 	//$resultEmailSettingsArray = $clientObjEmail->get()->byKey($emailID);
+
+  	 		//$from = $resultEmailSettingsArray->FromAddress;
+
+  		 	//$from = str_replace("u003c","<",$from);
+  		 	//$from = str_replace("u003e",">",$from);
+  		 	//$from = str_replace("\u003c","<",$from);
+  		 	//$from = str_replace("\u003e",">",$from);
+
+  		 	//WriteLog(("QueueAdd".$object->RefId), "From Address : ");
+  		 	//WriteLog(("QueueAdd".$object->RefId), string($from));
+
+			$client = ObjectStoreClient::WithNamespace($GroupNamespace,$GroupID,"ignore");
+  		 	$resultArray = $client->get()->all();
+
+  		 	for ($x = 0; $x < sizeof($resultArray); $x++) {
+  		 		if (!empty($resultArray[$x]["PhoneNumber"]) && $resultArray[$x]["PhoneNumber"] != "") {
+  		 			WriteLog(("QueueAdd".$object->RefId), "Sending an SMS... ");
+  		 			//WriteLog(("QueueAdd".$object->RefId), string($resultArray[$x]["Email"]));
+	    			$requestBody = $this->createCEBSmsRequest($resultArray[$x]["PhoneNumber"], $TemplateNamespace, $TemplateID);
+	    			$headers = array('securityToken: ignore');
+	    			//$status = CurlPost("http://localhost:6000/aa/bb", $requestBody, $headers);
+	    			$status = CurlPost(SVC_CEB_URL."command/notification", $requestBody, $headers);
+	    			//WriteLog(("QueueAdd".$object->RefId), "Sending Result : ");
+	    			//WriteLog(("QueueAdd".$object->RefId), string($status));
+    			}
+			}
+		}
+
 		private function getQueueAddList(){
 			$data = ReadLog("QueueAdd");
 			echo json_encode($data);
@@ -126,6 +170,15 @@ class QueueManager {
 							 "TemplateID" => $TemplateID);
 			return $request;
 		}
+
+		private function createCEBSmsRequest($number, $namespace, $TemplateID){
+			$request = array("type" => "sms",
+							 "number" => $number,
+							 "Namespace" => $namespace,
+							 "TemplateID" => $TemplateID);
+			return $request;
+		}
+
 
 		private function getRequestObject($arr){
 			$object = new ScheduleRequest();
