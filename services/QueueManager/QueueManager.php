@@ -31,7 +31,7 @@ class QueueManager {
 			        break;
 			    case "Email Campaign":
 			    	WriteLog(("QueueAdd".$requestObject->RefId), "Sending to CEB Mail Service!");
-			        $response = $this->SendEmail($requestObject);
+			        $response = $this->SendEmailBulk($requestObject);
 			        break;
 			    case "SMS Campaign":
 			    	WriteLog(("QueueAdd".$requestObject->RefId), "Sending to CEB SMS Service!");
@@ -106,6 +106,74 @@ class QueueManager {
 			}
 		}
 
+		private function SendEmailBulk($object){
+			WriteLog(("QueueAdd".$object->RefId), "Starting Send Mail Function for CEB Posting....");
+
+			$GroupNamespace = $object->Parameters["JSONData"]["Group"]["Namespace"];
+			$GroupID = $object->Parameters["JSONData"]["Group"]["GroupID"];
+  		 	$subject = $object->Parameters["JSONData"]["Subject"];
+  		 	//$from = $object->Parameters["JSONData"]["GatewaySettings"]["Email"]["From"];
+  		 	$TemplateID = $object->Parameters["JSONData"]["Template"]["TemplateID"];
+  		 	$TemplateNamespace = $object->Parameters["JSONData"]["Template"]["Namespace"];
+
+  		 	$emailNamespace = $object->Parameters["JSONData"]["GatewaySettings"]["Namespace"];
+  		 	$emailClass = $object->Parameters["JSONData"]["GatewaySettings"]["Class"];
+  		 	$from = $object->Parameters["JSONData"]["GatewaySettings"]["From"];
+
+  		 	$from = str_replace("u003c","<",$from);
+  		 	$from = str_replace("u003e",">",$from);
+  		 	$from = str_replace("\u003c","<",$from);
+  		 	$from = str_replace("\u003e",">",$from);
+
+  		 	//WriteLog(("QueueAdd".$object->RefId), "From Address : ");
+  		 	//WriteLog(("QueueAdd".$object->RefId), string($from));
+
+			$client = ObjectStoreClient::WithNamespace($GroupNamespace,$GroupID,"ignore");
+  		 	$resultArray = $client->get()->all();
+
+  		 	$count = 1;
+  		 	$emailStack = array();
+
+  		 	if (sizeof($resultArray) <=100) {
+  		 		for ($x = 0; $x < sizeof($resultArray); $x++) {
+  		 			if (!empty($resultArray[$x]["Email"]) && $resultArray[$x]["Email"] != "") {
+  		 				$requestBody = $this->createCEBEmailRequest($resultArray[$x]["Email"], $subject, $from, $TemplateNamespace, $TemplateID);
+  		 				array_push($emailStack, $requestBody);
+    				}
+				}
+
+				$pushObject = $this->createCEBBulkEmailRequest($emailStack, $emailNamespace, $emailClass);
+				
+				WriteLog(("QueueAdd".$object->RefId), "Sending an individual Email Stack... ");
+		    	$headers = array('securityToken: ignore');
+		    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+			}else{
+				for ($x = 0; $x < sizeof($resultArray); $x++) {
+  		 			if (!empty($resultArray[$x]["Email"]) && $resultArray[$x]["Email"] != "") {
+  		 				$requestBody = $this->createCEBEmailRequest($resultArray[$x]["Email"], $subject, $from, $TemplateNamespace, $TemplateID);
+  		 				array_push($emailStack, $requestBody);
+
+  		 				if (sizeof($emailStack) == 100){
+  		 					$pushObject = $this->createCEBBulkEmailRequest($emailStack, $emailNamespace, $emailClass);
+							WriteLog(("QueueAdd".$object->RefId), "Sending an Email Stack... ");
+					    	$headers = array('securityToken: ignore');
+					    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+  		 					$count = 0;
+  		 					$emailStack = array();
+  		 				}else if (sizeof($emailStack) < 100 && x==(sizeof($resultArray)-1)){
+  		 					$pushObject = $this->createCEBBulkEmailRequest($emailStack, $emailNamespace, $emailClass);
+							WriteLog(("QueueAdd".$object->RefId), "Sending Last Email Stack... ");
+					    	$headers = array('securityToken: ignore');
+					    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+  		 				}else{
+  		 					//Don't do anything :P
+  		 					$count += 1;
+  		 				}
+    				}
+				}
+			}
+		}
+
 		private function SendSMS($object){
 			WriteLog(("QueueAdd".$object->RefId), "Starting Send SMS Function for CEB Posting....");
 
@@ -150,6 +218,67 @@ class QueueManager {
 			}
 		}
 
+		private function SendSMSBulk($object){
+			WriteLog(("QueueAdd".$object->RefId), "Starting Send SMS Function for CEB Posting....");
+
+			$GroupNamespace = $object->Parameters["JSONData"]["Group"]["Namespace"];
+			$GroupID = $object->Parameters["JSONData"]["Group"]["GroupID"];
+
+  		 	$TemplateID = $object->Parameters["JSONData"]["Template"]["TemplateID"];
+  		 	$TemplateNamespace = $object->Parameters["JSONData"]["Template"]["Namespace"];
+
+  		 	$emailNamespace = $object->Parameters["JSONData"]["GatewaySettings"]["Namespace"];
+  		 	$emailClass = $object->Parameters["JSONData"]["GatewaySettings"]["Class"];
+ 
+
+			$client = ObjectStoreClient::WithNamespace($GroupNamespace,$GroupID,"ignore");
+  		 	$resultArray = $client->get()->all();
+
+			$count = 1;
+  		 	$smsStack = array();
+
+  		 	if (sizeof($resultArray) <=100) {
+  		 		for ($x = 0; $x < sizeof($resultArray); $x++) {
+  		 			if (!empty($resultArray[$x]["PhoneNumber"]) && $resultArray[$x]["PhoneNumber"] != "") {
+  		 				$requestBody = $this->createCEBSMSRequest($resultArray[$x]["PhoneNumber"], $subject, $from, $TemplateNamespace, $TemplateID);
+  		 				array_push($smsStack, $requestBody);
+    				}
+				}
+
+				$pushObject = $this->createCEBBulkSMSRequest($smsStack, $emailNamespace, $emailClass);
+				
+				WriteLog(("QueueAdd".$object->RefId), "Sending an individual SMS Stack... ");
+		    	$headers = array('securityToken: ignore');
+		    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+			}else{
+				for ($x = 0; $x < sizeof($resultArray); $x++) {
+  		 			if (!empty($resultArray[$x]["PhoneNumber"]) && $resultArray[$x]["PhoneNumber"] != "") {
+  		 				$requestBody = $this->createCEBSMSRequest($resultArray[$x]["PhoneNumber"], $subject, $from, $TemplateNamespace, $TemplateID);
+  		 				array_push($smsStack, $requestBody);
+
+  		 				if (sizeof($smsStack) == 100){
+  		 					$pushObject = $this->createCEBBulkSMSRequest($smsStack, $emailNamespace, $emailClass);
+							WriteLog(("QueueAdd".$object->RefId), "Sending an SMS Stack... ");
+					    	$headers = array('securityToken: ignore');
+					    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+  		 					$count = 0;
+  		 					$smsStack = array();
+  		 				}else if (sizeof($smsStack) < 100 && x==(sizeof($resultArray)-1)){
+  		 					$pushObject = $this->createCEBBulkSMSRequest($smsStack, $emailNamespace, $emailClass);
+							WriteLog(("QueueAdd".$object->RefId), "Sending Last SMS Stack... ");
+					    	$headers = array('securityToken: ignore');
+					    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+  		 				}else{
+  		 					//Don't do anything :P
+  		 					$count += 1;
+  		 				}
+    				}
+				}
+			}
+
+
+		}
+
 		private function getQueueAddList(){
 			$data = ReadLog("QueueAdd");
 			echo json_encode($data);
@@ -168,6 +297,20 @@ class QueueManager {
 							 "from" => $from,
 							 "Namespace" => $namespace,
 							 "TemplateID" => $TemplateID);
+			return $request;
+		}
+
+		private function createCEBBulkEmailRequest($emailArray, $class, $namespace){
+			$request = array("configuration" => array("class" => $class, "namespace" => $namespace),
+							 "type" => "bulkemail",
+							 "recivers" => $emailArray);
+			return $request;
+		}
+
+		private function createCEBBulkSMSRequest($smsArray, $class, $namespace){
+			$request = array("configuration" => array("class" => $class, "namespace" => $namespace),
+							 "type" => "bulksms",
+							 "recivers" => $smsArray);
 			return $request;
 		}
 
