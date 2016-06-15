@@ -11,6 +11,34 @@ class QueueManager {
 			echo json_encode($arr);
 		}
 
+		private function test(){
+			$emailStack = array();
+			
+			$email1 = $this->createCEBEmailRequest("test1@gmail.com", "subject1", "from1", "namespace1", "templateid1");
+  		 	$email2 = $this->createCEBEmailRequest("test2@gmail.com", "subject2", "from1", "namespace1", "templateid1");
+
+  		 	array_push($emailStack, $email1, $email2);
+  		 	$pushObject = $this->createCEBBulkEmailRequest($emailStack, "localhost620", "MandrillApp");
+  		 	$headers = array('securityToken: ignore');
+			$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+			
+			$data = new CEBNotifierResponse();
+			$data = json_decode($status);
+			var_dump($data->data->failList);
+			var_dump(sizeof($data->data->failList));
+			var_dump(sizeof($data->data->successList));
+
+			$successCount = sizeof($data->data->successList);
+			$failCount = sizeof($data->data->failList);
+			$failList = $data->data->failList;
+
+			$report = $this->CreateCEBResponseToObjectstoreJson("one", $successCount, $failCount, $failList, "EMAIL");
+			var_dump($report);
+			$objResult = $this->PushReportToObjectstore($report, "com.prasad.com", "CampaignReports", "RefId");
+
+			var_dump($objResult);
+		}
+
 		private function enqueue(){
 			
 			$data = $_POST;
@@ -108,6 +136,8 @@ class QueueManager {
 
 		private function SendEmailBulk($object){
 			WriteLog(("QueueAdd".$object->RefId), "Starting Send Mail Function for CEB Posting....");
+			
+			$MainNamespace = $object->Parameters["Namespace"];
 
 			$GroupNamespace = $object->Parameters["JSONData"]["Group"]["Namespace"];
 			$GroupID = $object->Parameters["JSONData"]["Group"]["GroupID"];
@@ -147,7 +177,36 @@ class QueueManager {
 				WriteLog(("QueueAdd".$object->RefId), "Sending an individual Email Stack... ");
 		    	$headers = array('securityToken: ignore');
 		    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+		    	
+
+				$cebResponse = new CEBNotifierResponse();
+				$cebResponse = json_decode($status);
+
+				WriteLog(("QueueAdd".$object->RefId), $status);
+
+				$id = $object->RefId;
+				$successCount = sizeof($cebResponse->data->successList);
+				$failCount = sizeof($cebResponse->data->failList);
+				$failList = $cebResponse->data->failList;
+
+				$report = $this->CreateCEBResponseToObjectstoreJson($id, $successCount, $failCount, $failList, "EMAIL");
+				$objResult = $this->PushReportToObjectstore($report, $MainNamespace, "CampaignReports", "RefId");
+				WriteLog(("QueueAdd".$object->RefId), $objResult);
+				$objResponse = new ObjectStoreResponse();
+				$objResponse = json_decode($objResult);
+
+				if ($objResponse->IsSuccess == TRUE){
+					WriteLog(("QueueAdd".$object->RefId), "Report Saving to ObjectStore Successful!");
+				}else{
+					WriteLog(("QueueAdd".$object->RefId), "Report Saving to ObjectStore Failed!");
+				}
+
 			}else{
+				$failCount =0;
+				$successCount = 0;
+				$failList = array();
+				$id = $object->RefId;
+
 				for ($x = 0; $x < sizeof($resultArray); $x++) {
   		 			if (!empty($resultArray[$x]["Email"]) && $resultArray[$x]["Email"] != "") {
   		 				$requestBody = $this->createCEBEmailRequest($resultArray[$x]["Email"], $subject, $from, $TemplateNamespace, $TemplateID);
@@ -158,18 +217,51 @@ class QueueManager {
 							WriteLog(("QueueAdd".$object->RefId), "Sending an Email Stack... ");
 					    	$headers = array('securityToken: ignore');
 					    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+
+					    	$cebResponse = new CEBNotifierResponse();
+							$cebResponse = json_decode($status);
+
+							WriteLog(("QueueAdd".$object->RefId), $status);
+
+							$successCount += sizeof($cebResponse->data->successList);
+							$failCount += sizeof($cebResponse->data->failList);
+							$failList = array_merge($failList, ($cebResponse->data->failList));
+
   		 					$count = 0;
   		 					$emailStack = array();
+
   		 				}else if (sizeof($emailStack) < 100 && x==(sizeof($resultArray)-1)){
   		 					$pushObject = $this->createCEBBulkEmailRequest($emailStack, $emailNamespace, $emailClass);
 							WriteLog(("QueueAdd".$object->RefId), "Sending Last Email Stack... ");
 					    	$headers = array('securityToken: ignore');
 					    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+
+					    	$cebResponse = new CEBNotifierResponse();
+							$cebResponse = json_decode($status);
+
+							WriteLog(("QueueAdd".$object->RefId), $status);
+
+							$successCount += sizeof($cebResponse->data->successList);
+							$failCount += sizeof($cebResponse->data->failList);
+							$failList = array_merge($failList, ($cebResponse->data->failList));
+
   		 				}else{
   		 					//Don't do anything :P
   		 					$count += 1;
   		 				}
     				}
+				}
+
+				$report = $this->CreateCEBResponseToObjectstoreJson($id, $successCount, $failCount, $failList, "EMAIL");
+				$objResult = $this->PushReportToObjectstore($report, $MainNamespace, "CampaignReports", "RefId");
+				WriteLog(("QueueAdd".$object->RefId), $objResult);
+				$objResponse = new ObjectStoreResponse();
+				$objResponse = json_decode($objResult);
+
+				if ($objResponse->IsSuccess == TRUE){
+					WriteLog(("QueueAdd".$object->RefId), "Report Saving to ObjectStore Successful!");
+				}else{
+					WriteLog(("QueueAdd".$object->RefId), "Report Saving to ObjectStore Failed!");
 				}
 			}
 		}
@@ -250,7 +342,36 @@ class QueueManager {
 				WriteLog(("QueueAdd".$object->RefId), "Sending an individual SMS Stack... ");
 		    	$headers = array('securityToken: ignore');
 		    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+
+		    	$cebResponse = new CEBNotifierResponse();
+				$cebResponse = json_decode($status);
+
+				WriteLog(("QueueAdd".$object->RefId), $status);
+
+				$id = $object->RefId;
+				$successCount = sizeof($cebResponse->data->successList);
+				$failCount = sizeof($cebResponse->data->failList);
+				$failList = $cebResponse->data->failList;
+
+				$report = $this->CreateCEBResponseToObjectstoreJson($id, $successCount, $failCount, $failList, "SMS");
+				$objResult = $this->PushReportToObjectstore($report, $MainNamespace, "CampaignReports", "RefId");
+				WriteLog(("QueueAdd".$object->RefId), $objResult);
+				$objResponse = new ObjectStoreResponse();
+				$objResponse = json_decode($objResult);
+
+				if ($objResponse->IsSuccess == TRUE){
+					WriteLog(("QueueAdd".$object->RefId), "Report Saving to ObjectStore Successful!");
+				}else{
+					WriteLog(("QueueAdd".$object->RefId), "Report Saving to ObjectStore Failed!");
+				}
+
 			}else{
+
+				$failCount =0;
+				$successCount = 0;
+				$failList = array();
+				$id = $object->RefId;
+
 				for ($x = 0; $x < sizeof($resultArray); $x++) {
   		 			if (!empty($resultArray[$x]["PhoneNumber"]) && $resultArray[$x]["PhoneNumber"] != "") {
   		 				$requestBody = $this->createCEBSMSRequest($resultArray[$x]["PhoneNumber"], $subject, $from, $TemplateNamespace, $TemplateID);
@@ -261,6 +382,16 @@ class QueueManager {
 							WriteLog(("QueueAdd".$object->RefId), "Sending an SMS Stack... ");
 					    	$headers = array('securityToken: ignore');
 					    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+
+					    	$cebResponse = new CEBNotifierResponse();
+							$cebResponse = json_decode($status);
+
+							WriteLog(("QueueAdd".$object->RefId), $status);
+
+							$successCount += sizeof($cebResponse->data->successList);
+							$failCount += sizeof($cebResponse->data->failList);
+							$failList = array_merge($failList, ($cebResponse->data->failList));
+
   		 					$count = 0;
   		 					$smsStack = array();
   		 				}else if (sizeof($smsStack) < 100 && x==(sizeof($resultArray)-1)){
@@ -268,15 +399,35 @@ class QueueManager {
 							WriteLog(("QueueAdd".$object->RefId), "Sending Last SMS Stack... ");
 					    	$headers = array('securityToken: ignore');
 					    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
+
+							$cebResponse = new CEBNotifierResponse();
+							$cebResponse = json_decode($status);
+
+							WriteLog(("QueueAdd".$object->RefId), $status);
+
+							$successCount += sizeof($cebResponse->data->successList);
+							$failCount += sizeof($cebResponse->data->failList);
+							$failList = array_merge($failList, ($cebResponse->data->failList));
+
   		 				}else{
   		 					//Don't do anything :P
   		 					$count += 1;
   		 				}
     				}
 				}
+
+				$report = $this->CreateCEBResponseToObjectstoreJson($id, $successCount, $failCount, $failList, "SMS");
+				$objResult = $this->PushReportToObjectstore($report, $MainNamespace, "CampaignReports", "RefId");
+				WriteLog(("QueueAdd".$object->RefId), $objResult);
+				$objResponse = new ObjectStoreResponse();
+				$objResponse = json_decode($objResult);
+
+				if ($objResponse->IsSuccess == TRUE){
+					WriteLog(("QueueAdd".$object->RefId), "Report Saving to ObjectStore Successful!");
+				}else{
+					WriteLog(("QueueAdd".$object->RefId), "Report Saving to ObjectStore Failed!");
+				}
 			}
-
-
 		}
 
 		private function getQueueAddList(){
@@ -287,6 +438,27 @@ class QueueManager {
 		private function getQueueAddLog($refid){
 			$data = ReadLog("QueueAdd".$refid);
 			echo json_encode($data);
+		}
+
+		private function CreateCEBResponseToObjectstoreJson($RefId, $successCount, $failCount, $failList, $type){
+			$date = new DateTime();
+			$dateString = $date->format('YmdHis');
+			$readableTimeStamp = $date->format('Y-m-d H:i:s');
+			$request = array("RefId" => ($RefId."-".$dateString),
+							 "SuccessCount" => $successCount,
+							 "FailCount" => $failCount,
+							 "FailList" => $failList,
+							 "Type" => $type,
+							 "TimeStamp" => $readableTimeStamp);
+			return $request;
+		}
+
+		private function PushReportToObjectstore($record, $namespace, $class, $primarykey){
+			$status = TRUE;
+			$data = array("Object" => $record, "Parameters" => array("KeyProperty" => $primarykey));                                                          
+			$headers = array('securityToken: ignore');
+			$status = CurlPost(SVC_OS_URL."/".$namespace."/".$class, $data, $headers);
+			return $status;
 		}
 
 
@@ -339,6 +511,7 @@ class QueueManager {
 		function __construct(){
 			Flight::route("GET /queuemanager", function (){$this->About();});
 			Flight::route("POST /queuemanager/enqueue", function (){$this->enqueue();});
+			Flight::route("POST /queuemanager/test", function (){$this->test();});
 			Flight::route("GET /queuemanager/enqueue/loglist", function (){$this->getQueueAddList();});
 			Flight::route("GET /queuemanager/enqueue/log/@refid", function ($refid){
 				$this->getQueueAddLog($refid);

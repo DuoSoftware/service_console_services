@@ -17,4 +17,20 @@
 		public $IsSuccess;
 		public $Result;
 	}
+
+	class CEBNotifierResponse{
+		public $name;
+		public $type;
+		public $data;
+	}
+
+	class ObjectStoreResponse{
+		public $IsSuccess;
+		public $Message;
+		public $Stack;
+		public $Data;
+		public $Transaction;
+		public $TransactionID;
+		public $Extras;
+	}
 ?>

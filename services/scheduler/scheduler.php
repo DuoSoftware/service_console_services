@@ -6,14 +6,6 @@ class scheduler {
 			echo json_encode($arr);
 		}
 
-		private function addInfo(){
-			echo json_encode("GET version of this method is unavailable! Try POST method with a scheduler request body!");
-		}
-
-		private function uploadInfo(){
-				echo json_encode("GET version of this method is unavailable! Try POST method with a scheduler request body!");
-		}
-
 		private function add(){
 			$body = Flight::request()->getBody();
 			$data = new ScheduleRequest();
@@ -154,8 +146,6 @@ class scheduler {
 			Flight::route("GET /scheduler", function (){$this->About();});
 			Flight::route("POST /scheduler/schedule", function (){$this->upload();});
 			Flight::route("POST /scheduler/add", function (){$this->add();});
-			Flight::route("GET /scheduler/schedule", function (){$this->uploadInfo();});
-			Flight::route("GET /scheduler/add", function (){$this->addInfo();});
 			Flight::route("GET /scheduler/add/loglist", function (){$this->getAddLogList();});
 			Flight::route("GET /scheduler/add/log/@refid", function ($refid){
 				$this->getAddLog($refid);
