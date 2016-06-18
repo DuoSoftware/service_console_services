@@ -447,6 +447,7 @@ class QueueManager {
 			$request = array("RefId" => ($RefId."-".$dateString),
 							 "SuccessCount" => $successCount,
 							 "FailCount" => $failCount,
+							 "TotalCount" => ($successCount+$failCount),
 							 "FailList" => $failList,
 							 "Type" => $type,
 							 "TimeStamp" => $readableTimeStamp);
