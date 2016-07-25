@@ -16,7 +16,8 @@ function AuthLogin($authURL, $username, $password, $domain){
 }
 
 function GetGlobalConfigurations(){
-	$config = getCachedCEB_Config("CEB_Config");
+	//$config = getCachedCEB_Config("CEB_Config");
+	$config = array();
 	return $config;
 }
 

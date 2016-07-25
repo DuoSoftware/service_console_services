@@ -12,6 +12,8 @@
   require_once ('./include/objectstoreproxy.php');
   require_once ("./services/TaskDispatcher/TaskDispatcher.php");
   require_once ("./services/ObjectStoreTester/ObjectStoreTester.php");
+
+   require_once ("./services/DuoWorld/CampaignManager/campaignmain.php");
   
   new info();
   new uploader();
@@ -20,6 +22,7 @@
   new scheduler();
   new TaskDispatcher();
   new objectstoretester();
+  new CampaignManager();
 	
   Flight::start();
 
