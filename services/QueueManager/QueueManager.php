@@ -18,7 +18,7 @@ class QueueManager {
   		 	$email2 = $this->createCEBEmailRequest("test2@gmail.com", "subject2", "from1", "namespace1", "templateid1");
 
   		 	array_push($emailStack, $email1, $email2);
-  		 	$pushObject = $this->createCEBBulkEmailRequest($emailStack, "localhost620", "MandrillApp");
+  		 	$pushObject = $this->createCEBBulkEmailRequest($emailStack, "localhost", "MandrillApp");
   		 	$headers = array('securityToken: ignore');
 			$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
 			
@@ -42,6 +42,7 @@ class QueueManager {
 		private function enqueue(){
 			
 			$data = $_POST;
+
 			$requestObject = $this->getRequestObject($data);
 
 			WriteLog(("QueueAdd".$requestObject->RefId), "Starting adding a new Queue Instance!");
@@ -164,7 +165,9 @@ class QueueManager {
   		 	$count = 1;
   		 	$emailStack = array();
 
-  		 	if (sizeof($resultArray) <=100) {
+  		 	if (sizeof($resultArray) == 0) {
+				WriteLog(("QueueAdd".$object->RefId), "NO EMAILS FOUND!");
+  		 	}else if (sizeof($resultArray) <=100) {
   		 		for ($x = 0; $x < sizeof($resultArray); $x++) {
   		 			if (!empty($resultArray[$x]["Email"]) && $resultArray[$x]["Email"] != "") {
   		 				$requestBody = $this->createCEBEmailRequest($resultArray[$x]["Email"], $subject, $from, $TemplateNamespace, $TemplateID);
@@ -173,11 +176,12 @@ class QueueManager {
 				}
 
 				$pushObject = $this->createCEBBulkEmailRequest($emailStack, $emailNamespace, $emailClass);
-				
+
 				WriteLog(("QueueAdd".$object->RefId), "Sending an individual Email Stack... ");
 		    	$headers = array('securityToken: ignore');
 		    	$status = CurlPost(SVC_CEB_URL."command/notification", $pushObject, $headers);
-		    	
+		    	WriteLog(("QueueAdd".$object->RefId), SVC_CEB_URL);
+		    	WriteLog(("QueueAdd".$object->RefId), $status);
 
 				$cebResponse = new CEBNotifierResponse();
 				$cebResponse = json_decode($status);
@@ -329,7 +333,9 @@ class QueueManager {
 			$count = 1;
   		 	$smsStack = array();
 
-  		 	if (sizeof($resultArray) <=100) {
+  		 	if (sizeof($resultArray) ==0){
+				WriteLog(("QueueAdd".$object->RefId), "NO SMS FOUND!");
+  		 	}else if (sizeof($resultArray) <=100) {
   		 		for ($x = 0; $x < sizeof($resultArray); $x++) {
   		 			if (!empty($resultArray[$x]["PhoneNumber"]) && $resultArray[$x]["PhoneNumber"] != "") {
   		 				$requestBody = $this->createCEBSMSRequest($resultArray[$x]["PhoneNumber"], $subject, $from, $TemplateNamespace, $TemplateID);
@@ -473,7 +479,7 @@ class QueueManager {
 			return $request;
 		}
 
-		private function createCEBBulkEmailRequest($emailArray, $class, $namespace){
+		private function createCEBBulkEmailRequest($emailArray, $namespace ,$class){
 			$request = array("configuration" => array("class" => $class, "namespace" => $namespace),
 							 "type" => "bulkemail",
 							 "recivers" => $emailArray);
@@ -503,7 +509,7 @@ class QueueManager {
 			$object->OperationCode = $arr["OperationCode"];
 			$object->TimeStamp = $arr["TimeStamp"];
 			$object->TimeStampReadable = $arr["TimeStampReadable"];
-			$object->ControlParameters = $arr["ControlParameters"];
+			//$object->ControlParameters = $arr["ControlParameters"];
 			$object->Parameters = $arr["Parameters"];
 			$object->ScheduleParameters = $arr["ScheduleParameters"];
 			return $object;

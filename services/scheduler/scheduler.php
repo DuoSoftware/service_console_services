@@ -11,7 +11,8 @@ class scheduler {
 			$data = new ScheduleRequest();
 			$data = json_decode($body);
 			$configdata = GetGlobalConfigurations();
-			$data->ControlParameters = $configdata["data"]["data"];
+			//$data->ControlParameters = $configdata["data"]["data"];
+			$data->ControlParameters = $configdata;
 			$request = $this->getScheduleRequest($data);
 			$status = $this->pushNewScheduleObjectToObjectstore($data, "RefId");
 
@@ -46,7 +47,8 @@ class scheduler {
 			if (isset($data)){
 				if (isset($data->TimeStamp)){
 					$configdata = GetGlobalConfigurations();
-					$data->ControlParameters = $configdata["data"]["data"];
+					//$data->ControlParameters = $configdata["data"]["data"];
+					$data->ControlParameters = $configdata;
 		
 					$request = $this->getScheduleRequest($data);
 					$status = $this->pushRecordToObjectstore($data, "RefId");

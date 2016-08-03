@@ -29,9 +29,9 @@ class CampaignManager {
 
 			if (empty($pendingObject) && empty($completedObject)){
 				$message = "Not Found";
-			}else if (empty($pendingObject) && $completedObject->ScheduleParameters->ScheduleOccurence == 0) {
+			}else if (empty($pendingObject) && $completedObject->ScheduleParameters->OccuranceCount <= 1) {
 				$message= "Completed";
-			}else if (!empty($completedObject) && $completedObject->ScheduleParameters->ScheduleOccurence == 0 ){
+			}else if (!empty($completedObject) && $completedObject->ScheduleParameters->OccuranceCount <= 1 ){
 					$message = "completed";
 			}
 
